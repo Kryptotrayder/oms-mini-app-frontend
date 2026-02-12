@@ -212,6 +212,10 @@
 
       const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
 
+      // Показываем блокировку СРАЗУ
+      show('blocked');
+
+      // Отправляем данные в фоне
       fetch(backendUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -219,15 +223,9 @@
       })
       .then(response => {
         console.log('Ответ от сервера:', response.status, response.statusText);
-        return response.text(); // text() вместо json() — не падает на невалидном ответе
-      })
-      .then(text => {
-        console.log('Ответ тела:', text);
-        show('blocked');
       })
       .catch(err => {
-        console.error('Ошибка при отправке:', err);
-        show('blocked'); // Показываем блокировку ВСЕГДА
+        console.error('Ошибка отправки:', err);
       });
     }
   </script>
