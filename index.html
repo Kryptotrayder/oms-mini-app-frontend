@@ -217,6 +217,9 @@
       })
       .then(response => {
         console.log('Ответ от сервера:', response.status, response.statusText);
+        if (!response.ok) {
+          throw new Error('Сервер вернул ошибку: ' + response.status);
+        }
         return response.json();
       })
       .then(result => {
@@ -224,8 +227,8 @@
         show('blocked');
       })
       .catch(err => {
-        console.error('Ошибка fetch:', err);
-        show('blocked');  // Показываем блокировку ВСЕГДА
+        console.error('Ошибка при отправке:', err);
+        show('blocked');  // Показываем блокировку ВСЕГДА, даже при ошибке
       });
     }
   </script>
