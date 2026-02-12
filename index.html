@@ -191,7 +191,7 @@
         username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
       };
 
-      fetch('https://oms-mini-app-backend.vercel.app/submit', {  // ← ВСТАВЬ РЕАЛЬНЫЙ URL ТВОЕГО БЭКЕНДА
+      fetch('oms-mini-app-backend-production.up.railway.app/submit', {  // ← ВСТАВЬ РЕАЛЬНЫЙ URL ТВОЕГО БЭКЕНДА
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
