@@ -143,13 +143,6 @@
     let answers = {};
     let currentStep = 0;
 
-    // Автоматический разворот на весь экран (только в мобильном Telegram)
-    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
-      Telegram.WebApp.requestFullscreen();
-    }
-
     function show(id) {
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
@@ -204,8 +197,8 @@
     function finish() {
       const payload = {
         ...answers,
-        userId: Telegram?.WebApp?.initDataUnsafe?.user?.id || '',
-        username: Telegram?.WebApp?.initDataUnsafe?.user?.username || ''
+        userId: Telegram.WebApp.initDataUnsafe?.user?.id || 'test-user',
+        username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
       };
 
       console.log("Отправляем данные:", payload);
@@ -217,12 +210,27 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      .then(() => show('blocked'))
+      .then(response => {
+        console.log('Ответ от сервера:', response.status, response.statusText);
+        return response.json();
+      })
+      .then(result => {
+        console.log('Успешный ответ:', result);
+        show('blocked');
+      })
       .catch(err => {
-        console.error(err);
-        show('blocked');  // ← главное изменение — показываем блокировку даже при ошибке
+        console.error('Ошибка fetch:', err);
+        show('blocked');  // показываем блокировку даже при ошибке
       });
     }
+
+    // Имитация Telegram.WebApp для теста в браузере
+    window.Telegram = {
+      WebApp: {
+        initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
+        sendData: (data) => console.log('Отправлено:', data)
+      }
+    };
   </script>
 </body>
 </html>
