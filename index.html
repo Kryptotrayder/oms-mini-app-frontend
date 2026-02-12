@@ -201,38 +201,33 @@
       show('step6');
     }
 
-    function finish() {
-      const payload = {
-        ...answers,
-        userId: (Telegram?.WebApp?.initDataUnsafe?.user?.id) || '',
-        username: (Telegram?.WebApp?.initDataUnsafe?.user?.username) || ''
-      };
+function finish() {
+  const payload = {
+    ...answers,
+    userId: Telegram.WebApp.initDataUnsafe?.user?.id || '',
+    username: Telegram.WebApp.initDataUnsafe?.user?.username || ''
+  };
 
-      console.log("Отправляем данные:", payload);
+  console.log("Отправляем данные:", payload);
 
-      const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
+  const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
 
-      fetch(backendUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        console.log('Ответ от сервера:', response.status, response.statusText);
-        if (!response.ok) {
-          console.warn('Сервер вернул ошибку:', response.status);
-        }
-        return response.text(); // text() вместо json() — не падает на невалидном ответе
-      })
-      .then(text => {
-        console.log('Ответ тела:', text);
-        show('blocked');
-      })
-      .catch(err => {
-        console.error('Ошибка при отправке:', err);
-        show('blocked'); // Показываем блокировку ВСЕГДА
-      });
-    }
+  // Показываем блокировку СРАЗУ
+  show('blocked');
+
+  // Отправляем данные в фоне (не ждём ответа)
+  fetch(backendUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    console.log('Ответ от сервера:', response.status, response.statusText);
+  })
+  .catch(err => {
+    console.error('Ошибка отправки:', err);
+  });
+}
   </script>
 </body>
 </html>
