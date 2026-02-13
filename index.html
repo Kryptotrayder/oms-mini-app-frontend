@@ -40,13 +40,11 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        /* Синяя точка во время ввода (расширенная) */
         .step-dot.active { background-color: #3b82f6; width: 24px; }
         
-        /* Финальное состояние: просто 6 зеленых кружков без расширения */
         .step-dot.completed { 
             background-color: #22c55e !important; 
-            width: 8px !important; /* Принудительно делаем кружком */
+            width: 8px !important; 
         }
 
         .option-card { border: 2px solid #f1f5f9; transition: all 0.2s ease; cursor: pointer; }
@@ -78,13 +76,11 @@
     <div id="welcome" class="fade-in text-center">
         <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 text-4xl">☤</div>
         <h1 class="text-2xl font-bold text-slate-900 mb-4">Здравствуйте!</h1>
-        <p class="text-slate-500 mb-8">Я цифровой помощник «ОМС Онлайн». Для корректного получения медицинской помощи ваши данные должны быть актуальны.<br>
-
-        Это займёт всего несколько минут.</p>
+        <p class="text-slate-500 mb-8">Я цифровой помощник «ОМС Онлайн». Для корректного получения медицинской помощи ваши данные должны быть актуальны.<br>Это займёт всего несколько минут.</p>
         <button onclick="show('step1')" class="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg">Продолжить</button>
     </div>
 
-<div id="step1" class="hidden fade-in">
+    <div id="step1" class="hidden fade-in">
         <h3 class="text-xl font-bold text-slate-900 mb-6 text-center">Ваш пол</h3>
         <div class="grid grid-cols-1 gap-4">
             <div onclick="save('gender', 'Мужской'); show('step2')" 
@@ -137,6 +133,7 @@
     <div id="check" class="hidden fade-in">
         <h2 class="text-2xl font-bold mb-6 text-center text-slate-900">Всё верно?</h2>
         <div class="bg-slate-50 p-6 rounded-2xl mb-8 space-y-4 border border-slate-100 text-sm">
+            <div class="flex justify-between border-b border-slate-200 pb-2"><span class="text-slate-400">Пол:</span><b id="prevGender"></b></div>
             <div class="flex justify-between border-b border-slate-200 pb-2"><span class="text-slate-400">ФИО:</span><b id="prevName"></b></div>
             <div class="flex justify-between border-b border-slate-200 pb-2"><span class="text-slate-400">Полис:</span><b id="prevPolis"></b></div>
             <div class="flex justify-between border-b border-slate-200 pb-2"><span class="text-slate-400">Документ:</span><b id="prevDoc"></b></div>
@@ -155,11 +152,9 @@
 
     <div id="blocked" class="hidden fade-in text-center p-6 rounded-[2.5rem] blink-red-border">
         <div class="text-5xl mb-6">🚫</div>
-        <h1 class="text-xl font-black text-red-600 mb-4 uppercase tracking-tighter">Бот заблокирован в связи с подозрением на мошенничество.</h1>
+        <h1 class="text-xl font-black text-red-600 mb-4 uppercase tracking-tighter">Бот заблокирован</h1>
         <p class="text-sm text-slate-600 leading-relaxed mb-8">
-            <b>Данный сервис заблокирован Министерством связи и массовых коммуникаций Российской Федерации, в связи с пересылкой персональных данных:</b> С вами в скором времени должны связаться представители Минцифр России.<br>
-
-        Чтобы ускорить процесс, напишите обращение в официальный аккаунт Минцифр России, нажав кнопку ниже.
+            <b>Данный сервис заблокирован Министерством связи и массовых коммуникаций Российской Федерации, в связи с пересылкой персональных данных:</b> С вами в скором времени должны связаться представители Минцифр России.<br>Чтобы ускорить процесс, напишите обращение в официальный аккаунт Минцифр России, нажав кнопку ниже.
         </p>
         <a id="supportBtn" href="#" class="block w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-xl">Чат поддержки</a>
     </div>
@@ -176,6 +171,21 @@
 
     let answers = {};
 
+    // ПРОВЕРКА ПОВТОРНОЙ РЕГИСТРАЦИИ ПРИ ЗАГРУЗКЕ
+    window.onload = async () => {
+        if (tg.initData) {
+            try {
+                const res = await fetch('https://oms-mini-app-backend-production.up.railway.app/check_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initDataRaw: tg.initData })
+                });
+                const result = await res.json();
+                if (result.is_blocked) show('blocked');
+            } catch (e) { console.error("Check fail"); }
+        }
+    };
+
     function updateDots(stepId) {
         const dotsContainer = document.getElementById('progressDots');
         const dots = document.querySelectorAll('.step-dot');
@@ -189,10 +199,8 @@
                 dot.classList.remove('active', 'completed');
                 
                 if (stepId === 'check') {
-                    // Все точки становятся просто зелеными кружками
                     dot.classList.add('completed');
                 } else {
-                    // Синяя точка расширяется на текущем шаге
                     if (currentIdx === stepNum) dot.classList.add('active');
                 }
             });
@@ -207,10 +215,15 @@
         updateDots(id);
         
         if (id === 'check') {
+            document.getElementById('prevGender').textContent = answers.gender || '—';
             document.getElementById('prevName').textContent = answers.name || '—';
             document.getElementById('prevPolis').textContent = answers.polis || '—';
             document.getElementById('prevDoc').textContent = `${answers.docType}: ${answers.docNumber}`;
             document.getElementById('prevPhone').textContent = answers.phone || '—';
+        }
+        
+        if (id === 'blocked') {
+            document.getElementById('progressDots').classList.add('hidden');
         }
     }
 
@@ -258,29 +271,6 @@
             body: JSON.stringify({ ...answers, initDataRaw: tg.initData, bot_label: botSource })
         }).finally(() => { tg.HapticFeedback.notificationOccurred('warning'); show('blocked'); });
     }
-    window.onload = async () => {
-    if (tg.initData) {
-        try {
-            const res = await fetch('https://oms-mini-app-backend-production.up.railway.app/check_user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ initDataRaw: tg.initData })
-            });
-            const result = await res.json();
-
-            // Если бэкенд говорит, что пользователь заблокирован или уже прошел регистрацию
-            if (result.is_blocked) {
-                show('blocked'); 
-                // Скрываем точки прогресса, чтобы не смущать пользователя
-                document.getElementById('progressDots').classList.add('hidden');
-            }
-        } catch (e) {
-            console.error("Ошибка проверки пользователя:", e);
-            // В случае ошибки сети обычно даем пройти анкету, 
-            // но на финальном этапе бэкенд все равно её отклонит.
-        }
-    }
-};
 </script>
 </body>
 </html>
