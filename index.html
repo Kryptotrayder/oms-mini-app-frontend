@@ -84,14 +84,19 @@
         <button onclick="show('step1')" class="w-full bg-blue-600 text-white py-4 rounded-2xl text-lg font-semibold shadow-lg">Продолжить</button>
     </div>
 
-    <div id="step1" class="hidden fade-in">
+<div id="step1" class="hidden fade-in">
         <h3 class="text-xl font-bold text-slate-900 mb-6 text-center">Ваш пол</h3>
-        <div class="grid grid-cols-1 gap-3">
-            <div onclick="save('gender', 'Мужской'); show('step2')" class="option-card p-5 rounded-2xl flex justify-between">
-                <span>Мужской</span><span class="opacity-40">♂</span>
+        <div class="grid grid-cols-1 gap-4">
+            <div onclick="save('gender', 'Мужской'); show('step2')" 
+                 class="option-card p-5 rounded-2xl flex justify-between items-center bg-blue-50/50 border-blue-100 hover:border-blue-400 hover:bg-blue-50 transition-all">
+                <span class="text-lg font-semibold text-blue-700">Мужской</span>
+                <span class="text-2xl text-blue-300"></span>
             </div>
-            <div onclick="save('gender', 'Женский'); show('step2')" class="option-card p-5 rounded-2xl flex justify-between">
-                <span>Женский</span><span class="opacity-40">♀</span>
+            
+            <div onclick="save('gender', 'Женский'); show('step2')" 
+                 class="option-card p-5 rounded-2xl flex justify-between items-center bg-pink-50/50 border-pink-100 hover:border-pink-400 hover:bg-pink-50 transition-all">
+                <span class="text-lg font-semibold text-pink-700">Женский</span>
+                <span class="text-2xl text-pink-300"></span>
             </div>
         </div>
     </div>
