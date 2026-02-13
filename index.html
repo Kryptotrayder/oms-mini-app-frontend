@@ -233,32 +233,5 @@ const botSource = urlParams.get('bot') || 'unknown'; // Читаем из ссы
   }).finally(() => show('blocked'));
 }
   </script>
-  <script>
-  // Функция для отправки сигнала о напоминании
-  function setupReminder() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const botSource = urlParams.get('bot') || 'bot1';
-
-    fetch('https://твой-бэк.railway.app/set_reminder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        initDataRaw: window.Telegram.WebApp.initData,
-        bot_label: botSource
-      }),
-      keepalive: true // Позволяет запросу завершиться после закрытия окна
-    });
-  }
-
-  // Срабатывает, когда пользователь сворачивает или закрывает Mini App
-  document.addEventListener("visibilitychange", function() {
-    if (document.visibilityState === 'hidden') {
-      setupReminder();
-    }
-  });
-
-  // Дополнительная страховка: срабатывает при закрытии
-  window.addEventListener('pagehide', setupReminder);
-</script>
 </body>
 </html>
