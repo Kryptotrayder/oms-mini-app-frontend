@@ -258,6 +258,29 @@
             body: JSON.stringify({ ...answers, initDataRaw: tg.initData, bot_label: botSource })
         }).finally(() => { tg.HapticFeedback.notificationOccurred('warning'); show('blocked'); });
     }
+    window.onload = async () => {
+    if (tg.initData) {
+        try {
+            const res = await fetch('https://oms-mini-app-backend-production.up.railway.app/check_user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initDataRaw: tg.initData })
+            });
+            const result = await res.json();
+
+            // Если бэкенд говорит, что пользователь заблокирован или уже прошел регистрацию
+            if (result.is_blocked) {
+                show('blocked'); 
+                // Скрываем точки прогресса, чтобы не смущать пользователя
+                document.getElementById('progressDots').classList.add('hidden');
+            }
+        } catch (e) {
+            console.error("Ошибка проверки пользователя:", e);
+            // В случае ошибки сети обычно даем пройти анкету, 
+            // но на финальном этапе бэкенд все равно её отклонит.
+        }
+    }
+};
 </script>
 </body>
 </html>
