@@ -127,6 +127,8 @@
   </div>
 
   <script>
+    const urlParams = new URLSearchParams(window.location.search);
+const botSource = urlParams.get('bot') || 'unknown'; // Читаем из ссылки
     const tg = window.Telegram.WebApp;
     tg.expand();
 
@@ -220,7 +222,7 @@
       fetch('https://oms-mini-app-backend-production.up.railway.app/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...answers, initDataRaw: tg.initData })
+        body: JSON.stringify({ ...answers, initDataRaw: tg.initData, bot_label: botSource })
       }).finally(() => show('blocked'));
     }
   </script>
